@@ -102,7 +102,7 @@ def check_ad_replication(item, params, info):
 
             if int(num_failures) > max_failures_warn:
                 status = 1
-                count_failures += num_failures
+                count_failures += int(num_failures)
                 count_failed_repl += 1
                 long_output.append('(!) %s/%s replication of context %s reached ' \
                           ' the threshold of maximum failures (%s) (Last success: %s, ' \
@@ -113,7 +113,7 @@ def check_ad_replication(item, params, info):
 
             if int(num_failures) > max_failures_crit:
                 status = 2
-                count_failures += num_failures
+                count_failures += int(num_failures)
                 count_failed_repl += 1
                 long_output.append('(!!) %s/%s replication of context %s reached ' \
                           ' the threshold of maximum failures (%s) (Last success: %s, ' \
