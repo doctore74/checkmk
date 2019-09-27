@@ -100,18 +100,20 @@ def check_ad_replication(item, params, info):
             max_failures_warn = params[0]
             max_failures_crit = params[1]
 
-            if int(num_failures) > max_failures_warn:
-                status = 1
-                count_failures += int(num_failures)
+            if time_last_failure is not None and time_last_success is not None \
+               and time_last_failure > time_last_success:
+                status = 2
+                # correct here?
+                count_failures += 1
+                # better this way?
+                #count_failures += int(num_failures)
                 count_failed_repl += 1
-                long_output.append('(!) %s/%s replication of context %s reached ' \
-                          ' the threshold of maximum failures (%s) (Last success: %s, ' \
-                          'Last failure: %s, Num failures: %s, Status: %s)\n' % \
-                         (source_site, source_dc, naming_context, max_failures_warn,
+                long_output.append('(!!) %s/%s replication of context %s failed ' \
+                         '(Last success: %s, Last failure: %s, Num failures: %s, Status: %s)\n' % \
+                         (source_site, source_dc, naming_context,
                           time_last_success_txt, time_last_failure_txt, num_failures, statusLastFailure))
-                "\n".join(long_output)
 
-            if int(num_failures) > max_failures_crit:
+            elif int(num_failures) > max_failures_crit:
                 status = 2
                 count_failures += int(num_failures)
                 count_failed_repl += 1
@@ -120,24 +122,22 @@ def check_ad_replication(item, params, info):
                           'Last failure: %s, Num failures: %s, Status: %s)\n' % \
                          (source_site, source_dc, naming_context, max_failures_crit,
                           time_last_success_txt, time_last_failure_txt, num_failures, statusLastFailure))
-                "\n".join(long_output)
 
-            if time_last_failure is not None and time_last_success is not None \
-               and time_last_failure > time_last_success:
-                status = 2
-                count_failures += 1
+            elif int(num_failures) > max_failures_warn:
+                status = 1
+                count_failures += int(num_failures)
                 count_failed_repl += 1
-                long_output.append('(!!) %s/%s replication of context %s failed ' \
-                         '(Last success: %s, Last failure: %s, Num failures: %s, Status: %s)\n' % \
-                         (source_site, source_dc, naming_context,
+                long_output.append('(!) %s/%s replication of context %s reached ' \
+                          ' the threshold of maximum failures (%s) (Last success: %s, ' \
+                          'Last failure: %s, Num failures: %s, Status: %s)\n' % \
+                         (source_site, source_dc, naming_context, max_failures_warn,
                           time_last_success_txt, time_last_failure_txt, num_failures, statusLastFailure))
-                "\n".join(long_output)
 
     if not foundLine:
         yield 3, 'Replication information for %s not found' % item
         return
 
-    if status != 0:
+    if status:
         yield status, ("Replications with failures: %s, Total failures: %s" % (count_failed_repl, count_failures))
         if long_output:
             yield 0, '\n%s' % '\n'.join(long_output)
